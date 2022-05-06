@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        ports:
+        - containerPort: 9090
+        args:
+          - "--config.file=/etc/prometheus/prometheus.yml"
+          - "--storage.tsdb.min-block-duration=2h"
+          - "--storage.tsdb.max-block-duration=2h"
+          - "--storage.tsdb.path=/var/lib/prometheus"
+          - "--web.enable-lifecycle"
+        volumeMounts:
+        - name: prometheus-data
+          mountPath: "/var/lib/prometheus"
+        - name: configuration
+          mountPath: "/etc/prometheus"
+      - name: prometheus-configmap-reload
+        image: jimmidyson/configmap-reload:latest
+        args:
+          - "--volume-dir=/etc/prometheus"
+          - "--volume-dir=/alerts"
+          - "--webhook-url=http://127.0.0.1:9090/-/reload"
+        volumeMounts:
+        - name: configuration
+          mountPath: "/etc/prometheus"
+          readOnly: true
+      volumes:
+      - name: prometheus-data
+      - name: configuration
+        configMap:
+          name: prometheus-configmap
+          items:
+          - key: "prometheus.yml"
+            path: "prometheus.yml"

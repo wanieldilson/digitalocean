@@ -1,0 +1,5 @@
+email: ""
+godaddyApiKey: ""
+godaddyApiSecret: ""
+godaddyDomain: ""
+letsencryptDirectoryUrl: "https://acme-staging-v02.api.letsencrypt.org"
